@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Configure network infra from TMO C2
+
+Parameters:
+  deployNetwork:
+    Description: Initialize network infrastructure
+    Type: String
+    AllowedValues:
+      - "Yes"
+      - "No"
+    Default: "No"
+  
+  namePrefix:
+    Description: Naming convention
+    Type: String
+    Default: "tmo-c2-cloud"
+
+Conditions:
+  createNetwork: !Equals [ !Ref deployNetwork, "Yes" ]
+
+Mappings:
+  octets:
+    o1: "10"
+    o2: "0"
+    oInternet: "0"
+    oSecurity: "1"
+  subnets:
+    sInternet: "24"
+    sSecurity: "24"
+  azs:
+    Az1: "usw2-az1"
+    Az2: "usw2-az2"
+
+Resources:
+  InternetVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Sub 
+        - ${o1}.${o2}.${oInternet}.0/${sInternet}
+        - o1: !FindInMap [ octet, o1 ]
+        - o2: !FindInMap [ octet, o2 ]
+        - oInternet: !FindInMap [ subnets, oInternet ]
+        - sInternet: !FindInMap [ subnets, sInternet ]
+      EnableDnsHostnames: 
+        - true
+      EnableDnsSupport: 
+        - true
+      InstanceTenancy: 'default'
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Join:
+              - ''
+              - - "vpc-"
+                - Ref: namePrefix
+                - "internet"
