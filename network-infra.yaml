@@ -21,16 +21,17 @@ Conditions:
 
 Mappings:
   octets:
-    o1: "10"
-    o2: "0"
-    oInternet: "0"
-    oSecurity: "1"
+    values:
+      o1: "10"
+      o2: "0"
+      oInternet: "0"
   subnets:
-    sInternet: "24"
-    sSecurity: "24"
+    values:
+      sInternet: "16"
   azs:
-    Az1: "usw2-az1"
-    Az2: "usw2-az2"
+    values:
+      Az1: "usw2-az1"
+      Az2: "usw2-az2"
 
 Resources:
   InternetVpc:
@@ -38,20 +39,13 @@ Resources:
     Properties:
       CidrBlock: !Sub 
         - ${o1}.${o2}.${oInternet}.0/${sInternet}
-        - o1: !FindInMap [ octet, o1 ]
-        - o2: !FindInMap [ octet, o2 ]
-        - oInternet: !FindInMap [ subnets, oInternet ]
-        - sInternet: !FindInMap [ subnets, sInternet ]
-      EnableDnsHostnames: 
-        - true
-      EnableDnsSupport: 
-        - true
+        - o1: !FindInMap [ octets, values, o1 ]
+          o2: !FindInMap [ octets, values, o2 ]
+          oInternet: !FindInMap [ octets, values, oInternet ]
+          sInternet: !FindInMap [ subnets, values, sInternet ]
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
       InstanceTenancy: 'default'
       Tags:
         - Key: Name
-          Value:
-            Fn::Join:
-              - ''
-              - - "vpc-"
-                - Ref: namePrefix
-                - "internet"
+          Value: !Join [ "-", [ "vpc", !Ref namePrefix, "internet"] ]

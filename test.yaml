@@ -1,0 +1,40 @@
+Resources:
+  vpc1:
+    Type: AWS::EC2::VPC
+    Properties:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.0.0.0/16
+        EnableDnsHostnames: true
+        EnableDnsSupport: true
+        InstanceTenancy: default
+        Tags:
+          - Key: Name
+            Value: vpc-tmo-c2-cloud-internet
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Type: AWS::EC2::InternetGateway
+      Properties:
+        Tags:
+          - Key: Name
+            Value: igw-tmo-c2-cloud
+  public1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      Type: AWS::EC2::Subnet
+      Properties:
+        AvailabilityZone: us-east-2a
+        CidrBlock: 10.0.1.0/28
+        Tags:
+          - Key: Name
+            Value: sub-tmo-c2-cloud-pub1
+        VpcId: vpc1
+Metadata:
+  AWS::Composer::Groups:
+    Group:
+      Label: Group
+      Members:
+        - InternetGateway
+        - vpc1
+        - public1
