@@ -2,9 +2,193 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: Configure network infra from TMO C2
 
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Options
+      Parameters:
+        - deployNetwork
+        - deployFirewalls
+        - namePrefix
+    - Label:
+        default: Firewall sizing
+      Parameters:
+        - GatewaysInstanceType
+        - GatewaysMinSize
+        - GatewaysMaxSize
+        - KeyName
+
 Parameters:
   deployNetwork:
     Description: Initialize network infrastructure
+    Type: String
+    AllowedValues:
+      - "Yes"
+      - "No"
+    Default: "No"
+
+  GatewayInstanceType:
+    Description: Firewall instance flavors
+    Type: String
+    Default: c6i.xlarge
+    AllowedValues:
+      - c4.large
+      - c4.xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.9xlarge
+      - c5.12xlarge
+      - c5.18xlarge
+      - c5.24xlarge
+      - c5n.large
+      - c5n.xlarge
+      - c5n.2xlarge
+      - c5n.4xlarge
+      - c5n.9xlarge
+      - c5n.18xlarge
+      - c5d.large
+      - c5d.xlarge
+      - c5d.2xlarge
+      - c5d.4xlarge
+      - c5d.9xlarge
+      - c5d.12xlarge
+      - c5d.18xlarge
+      - c5d.24xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.8xlarge
+      - m5.12xlarge
+      - m5.16xlarge
+      - m5.24xlarge
+      - m6i.large
+      - m6i.xlarge
+      - m6i.2xlarge
+      - m6i.4xlarge
+      - m6i.8xlarge
+      - m6i.12xlarge
+      - m6i.16xlarge
+      - m6i.24xlarge
+      - m6i.32xlarge
+      - c6i.large
+      - c6i.xlarge
+      - c6i.2xlarge
+      - c6i.4xlarge
+      - c6i.8xlarge
+      - c6i.12xlarge
+      - c6i.16xlarge
+      - c6i.24xlarge
+      - c6i.32xlarge
+      - c6in.large
+      - c6in.xlarge
+      - c6in.2xlarge
+      - c6in.4xlarge
+      - c6in.8xlarge
+      - c6in.12xlarge
+      - c6in.16xlarge
+      - c6in.24xlarge
+      - c6in.32xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.8xlarge
+      - r5.12xlarge
+      - r5.16xlarge
+      - r5.24xlarge
+      - r5a.large
+      - r5a.xlarge
+      - r5a.2xlarge
+      - r5a.4xlarge
+      - r5a.8xlarge
+      - r5a.12xlarge
+      - r5a.16xlarge
+      - r5a.24xlarge
+      - r5b.large
+      - r5b.xlarge
+      - r5b.2xlarge
+      - r5b.4xlarge
+      - r5b.8xlarge
+      - r5b.12xlarge
+      - r5b.16xlarge
+      - r5b.24xlarge
+      - r5n.large
+      - r5n.xlarge
+      - r5n.2xlarge
+      - r5n.4xlarge
+      - r5n.8xlarge
+      - r5n.12xlarge
+      - r5n.16xlarge
+      - r5n.24xlarge
+      - r6i.large
+      - r6i.xlarge
+      - r6i.2xlarge
+      - r6i.4xlarge
+      - r6i.8xlarge
+      - r6i.12xlarge
+      - r6i.16xlarge
+      - r6i.24xlarge
+      - r6i.32xlarge
+      - m6a.large
+      - m6a.xlarge
+      - m6a.2xlarge
+      - m6a.4xlarge
+      - m6a.8xlarge
+      - m6a.12xlarge
+      - m6a.16xlarge
+      - m6a.24xlarge
+      - m6a.32xlarge
+      - m6a.48xlarge
+      - r7a.xlarge
+      - r7a.2xlarge
+      - r7a.4xlarge
+      - r7a.8xlarge
+      - r7a.12xlarge
+      - r7a.16xlarge
+      - r7a.24xlarge
+      - r7a.32xlarge
+      - r7a.48xlarge
+      - c7i-flex.xlarge
+      - c7i-flex.2xlarge
+      - c7i-flex.4xlarge
+      - c7i-flex.8xlarge
+      - m7a.xlarge
+      - m7a.2xlarge
+      - m7a.4xlarge
+      - m7a.8xlarge
+      - m7a.12xlarge
+      - m7a.16xlarge
+      - m7a.24xlarge
+      - m7a.32xlarge
+      - m7a.48xlarge
+      - c7i.xlarge
+      - c7i.2xlarge
+      - c7i.4xlarge
+      - c7i.8xlarge
+      - c7i.12xlarge
+      - c7i.16xlarge
+      - c7i.24xlarge
+      - c7i.32xlarge
+      - c7i.48xlarge
+
+  GatewaysMinSize:
+    Description: The minimal number of gateways in the Auto Scaling group.
+    Type: Number
+    Default: 2
+    MinValue: 1
+
+  GatewaysMaxSize:
+    Description: The maximal number of gateways in the Auto Scaling group.
+    Type: Number
+    Default: 10
+    MinValue: 1
+
+  deployFirewalls:
+    Description: Deploy firewalls infrastructure
     Type: String
     AllowedValues:
       - "Yes"
@@ -16,36 +200,646 @@ Parameters:
     Type: String
     Default: "tmo-c2-cloud"
 
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances.
+    Type: AWS::EC2::KeyPair::KeyName
+    MinLength: 1
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+    Default: tmo-c2-cloud-fw-keypair
+
 Conditions:
-  createNetwork: !Equals [ !Ref deployNetwork, "Yes" ]
+  createNetwork:   !Equals [ !Ref deployNetwork, "Yes"   ]
+  createFirewalls: !Equals [ !Ref deployFirewalls, "Yes" ]
 
 Mappings:
   octets:
     values:
-      o1: "10"
-      o2: "0"
-      oInternet: "0"
+      o1:     10
+      o2:      0
+      az1:     1
+      az2:     2
   subnets:
-    values:
-      sInternet: "16"
+    nets:
+      vpc:     0
+      public:  0
+      fw:     16
+      pri:    32
+    masks:
+      vpc:    16
+      public: 28
+      fw:     28
+      pri:    28
   azs:
     values:
-      Az1: "usw2-az1"
-      Az2: "usw2-az2"
+      az1: "us-west-2a"
+      az2: "us-west-2b"
+  fwParms:
+    values:
+      AdminEmail: "oralm@checkpoint.com"
+      shell:      "/bin/bash"
+      sicKey:     "vpn12345"
+      version:    "R82-BYOL"
+      volumeType: gp3
+      volumeSize: 100
+      pwHash:     "$6$4yNcFR7Uzk.23eNW$Ev38fZtGRz8w68ReBariqCAl8RYFn9ZgkEgutS3KyeNqpx12e0V9XiMbEdk/th3ZIASUHyilbCJ057xttRdyA/"
+      mgmtHash:   "grub.pbkdf2.sha512.10000.B01C9D6197C2CC2F135ED5A82878A0D20CF1DAECE679AD391278D94988E5E71B03C14F636D149FF3E4E6D82D3FB808EBA49B1347DFC537534E5188CDD56418DC.90D462BD3D05B91409087C53B8AF75B96D42F90CF72E7A3981886C7038433609492908BFE923FAAE7F8B2E562A4735905A123308A34B6E78FB73923164FB6FA5"
+      asgMin:     2
+      asgMax:     10
+  elbParms:
+    values:
+      port: 8080
+      clients: "173.171.216.33/32"
 
 Resources:
+
+# Networking 
+
   InternetVpc:
     Type: AWS::EC2::VPC
+    Condition: createNetwork
     Properties:
       CidrBlock: !Sub 
-        - ${o1}.${o2}.${oInternet}.0/${sInternet}
-        - o1: !FindInMap [ octets, values, o1 ]
-          o2: !FindInMap [ octets, values, o2 ]
-          oInternet: !FindInMap [ octets, values, oInternet ]
-          sInternet: !FindInMap [ subnets, values, sInternet ]
+        - ${o1}.${o2}.${o3}.0/${mask}
+        - o1: !FindInMap   [ octets,  values, o1  ]
+          o2: !FindInMap   [ octets,  values, o2  ]
+          o3: !FindInMap   [ subnets, nets,   vpc ]
+          mask: !FindInMap [ subnets, masks,  vpc ]
       EnableDnsHostnames: true
       EnableDnsSupport: true
-      InstanceTenancy: 'default'
+      InstanceTenancy: default
       Tags:
         - Key: Name
           Value: !Join [ "-", [ "vpc", !Ref namePrefix, "internet"] ]
+  
+  subPublic1:
+    Type: AWS::EC2::Subnet
+    Condition: createNetwork
+    DependsOn:
+         - InternetVpc
+    Properties:
+      AvailabilityZone: !FindInMap [ azs, values, az1 ]
+      CidrBlock: !Sub 
+        - ${o1}.${o2}.${o3}.${subnet}/${mask}
+        - o1: !FindInMap     [ octets,  values, o1      ]
+          o2: !FindInMap     [ octets,  values, o2      ]
+          o3: !FindInMap     [ octets,  values, az1     ]
+          subnet: !FindInMap [ subnets, nets,   public  ]
+          mask: !FindInMap   [ subnets, masks,  public  ]
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "sub", !Ref namePrefix, "pub1"] ]
+      VpcId: !Ref InternetVpc
+  
+  subPublic2:
+    Type: AWS::EC2::Subnet
+    Condition: createNetwork
+    DependsOn:
+         - InternetVpc
+    Properties:
+      AvailabilityZone: !FindInMap [ azs, values, az2 ]
+      CidrBlock: !Sub
+        - ${o1}.${o2}.${o3}.${subnet}/${mask}
+        - o1: !FindInMap     [ octets,  values, o1      ]
+          o2: !FindInMap     [ octets,  values, o2      ]
+          o3: !FindInMap     [ octets,  values, az2     ]
+          subnet: !FindInMap [ subnets, nets,   public  ]
+          mask: !FindInMap   [ subnets, masks,  public  ]
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "sub", !Ref namePrefix, "pub2"] ]
+      VpcId: !Ref InternetVpc
+
+  subFw1:
+    Type: AWS::EC2::Subnet
+    Condition: createNetwork
+    DependsOn:
+         - InternetVpc
+    Properties:
+      AvailabilityZone: !FindInMap [ azs, values, az1 ]
+      CidrBlock: !Sub 
+        - ${o1}.${o2}.${o3}.${subnet}/${mask}
+        - o1: !FindInMap     [ octets,  values, o1  ]
+          o2: !FindInMap     [ octets,  values, o2  ]
+          o3: !FindInMap     [ octets,  values, az1 ]
+          subnet: !FindInMap [ subnets, nets,   fw  ]
+          mask: !FindInMap   [ subnets, masks,  fw  ]
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "sub", !Ref namePrefix, "fw1"] ]
+      VpcId: !Ref InternetVpc
+
+  subFw2:
+    Type: AWS::EC2::Subnet
+    Condition: createNetwork
+    DependsOn:
+         - InternetVpc
+    Properties:
+      AvailabilityZone: !FindInMap [ azs, values, az2 ]
+      CidrBlock: !Sub 
+        - ${o1}.${o2}.${o3}.${subnet}/${mask}
+        - o1: !FindInMap     [ octets,  values, o1  ]
+          o2: !FindInMap     [ octets,  values, o2  ]
+          o3: !FindInMap     [ octets,  values, az2 ]
+          subnet: !FindInMap [ subnets, nets,   fw  ]
+          mask: !FindInMap   [ subnets, masks,  fw  ]
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "sub", !Ref namePrefix, "fw2"] ]
+      VpcId: !Ref InternetVpc
+
+  subPriv1:
+    Type: AWS::EC2::Subnet
+    Condition: createNetwork
+    DependsOn:
+         - InternetVpc
+    Properties:
+      AvailabilityZone: !FindInMap [ azs, values, az1 ]
+      CidrBlock: !Sub 
+        - ${o1}.${o2}.${o3}.${subnet}/${mask}
+        - o1: !FindInMap     [ octets,  values, o1  ]
+          o2: !FindInMap     [ octets,  values, o2  ]
+          o3: !FindInMap     [ octets,  values, az1 ]
+          subnet: !FindInMap [ subnets, nets,   pri ]
+          mask: !FindInMap   [ subnets, masks,  pri ]
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "sub", !Ref namePrefix, "pri1"] ]
+      VpcId: !Ref InternetVpc
+
+  subPriv2:
+    Type: AWS::EC2::Subnet
+    Condition: createNetwork
+    DependsOn:
+         - InternetVpc
+    Properties:
+      AvailabilityZone: !FindInMap [ azs, values, az2 ]
+      CidrBlock: !Sub 
+        - ${o1}.${o2}.${o3}.${subnet}/${mask}
+        - o1: !FindInMap     [ octets,  values, o1  ]
+          o2: !FindInMap     [ octets,  values, o2  ]
+          o3: !FindInMap     [ octets,  values, az2 ]
+          subnet: !FindInMap [ subnets, nets,   pri ]
+          mask: !FindInMap   [ subnets, masks,  pri ]
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "sub", !Ref namePrefix, "pri2"] ]
+      VpcId: !Ref InternetVpc
+
+  rtPub1:
+    Type: AWS::EC2::RouteTable
+    Condition: createNetwork
+    DependsOn:
+        - subPublic1
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "rt", !Ref namePrefix, "pub1"] ]
+      VpcId: !Ref InternetVpc
+
+  rtPub2:
+    Type: AWS::EC2::RouteTable
+    Condition: createNetwork
+    DependsOn:
+        - subPublic2
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "rt", !Ref namePrefix, "pub2"] ]
+      VpcId: !Ref InternetVpc
+
+  rtFw1:
+    Type: AWS::EC2::RouteTable
+    Condition: createNetwork
+    DependsOn:
+        - subFw1
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "rt", !Ref namePrefix, "fw1"] ]
+      VpcId: !Ref InternetVpc
+
+  rtFw2:
+    Type: AWS::EC2::RouteTable
+    Condition: createNetwork
+    DependsOn:
+        - subFw2
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "rt", !Ref namePrefix, "fw2"] ]
+      VpcId: !Ref InternetVpc
+
+  rtPriv1:
+    Type: AWS::EC2::RouteTable
+    Condition: createNetwork
+    DependsOn:
+        - subPriv1
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "rt", !Ref namePrefix, "priv1"] ]
+      VpcId: !Ref InternetVpc
+
+  rtPriv2:
+    Type: AWS::EC2::RouteTable
+    Condition: createNetwork
+    DependsOn:
+        - subPriv2
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "rt", !Ref namePrefix, "priv2"] ]
+      VpcId: !Ref InternetVpc
+
+  rtPub1Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - rtPub1
+    Properties:
+      RouteTableId: !Ref rtPub1
+      SubnetId: !Ref subPublic1
+
+  rtPub2Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - rtPub1
+    Properties:
+      RouteTableId: !Ref rtPub2
+      SubnetId: !Ref subPublic2
+
+  rtFw1Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - rtFw1
+    Properties:
+      RouteTableId: !Ref rtFw1
+      SubnetId: !Ref subFw1
+
+  rtFw2Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - rtFw2
+    Properties:
+      RouteTableId: !Ref rtFw2
+      SubnetId: !Ref subFw2
+
+  rtPriv1Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - rtPriv1
+    Properties:
+      RouteTableId: !Ref rtPriv1
+      SubnetId: !Ref subPriv1
+
+  rtPriv2Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - rtPriv2
+    Properties:
+      RouteTableId: !Ref rtPriv2
+      SubnetId: !Ref subPriv2
+
+# Internet
+
+  igw1:
+    Type: AWS::EC2::InternetGateway
+    Condition: createNetwork
+    DependsOn:
+         - InternetVpc
+    Properties:
+      Tags: 
+        - Key: Name
+          Value: !Join [ "-", [ "igw", !Ref namePrefix, "internet"] ]
+  
+  igw1AttachInternet:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+        - igw1
+    Properties:
+      InternetGatewayId: !Ref igw1
+      VpcId: !Ref InternetVpc
+  
+  natAz1:
+    Type: AWS::EC2::NatGateway
+    Condition: createNetwork
+    DependsOn:
+        - igw1AttachInternet
+    Properties:
+      AllocationId: !GetAtt natAz1Eip.AllocationId
+      SubnetId: !Ref subPublic1
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "nat1", !Ref namePrefix, "internet"] ]
+
+  natAz1Eip:
+    Type: AWS::EC2::EIP
+    DependsOn:
+        - igw1AttachInternet
+    Properties:
+        Domain: vpc
+
+  natAz2:
+    Type: AWS::EC2::NatGateway
+    Condition: createNetwork
+    DependsOn:
+        - igw1AttachInternet
+    Properties:
+      AllocationId: !GetAtt natAz2Eip.AllocationId
+      SubnetId: !Ref subPublic2
+      Tags:
+        - Key: Name
+          Value: !Join [ "-", [ "nat2", !Ref namePrefix, "internet"] ]
+
+  natAz2Eip:
+    Type: AWS::EC2::EIP
+    DependsOn:
+        - igw1AttachInternet
+    Properties:
+        Domain: vpc
+
+  rDefToIgwAz1:
+    Type: AWS::EC2::Route
+    Condition: createNetwork
+    DependsOn:
+        - igw1AttachInternet
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      RouteTableId: !Ref rtPub1
+      GatewayId: !Ref igw1
+
+  rDefToIgwAz2:
+    Type: AWS::EC2::Route
+    Condition: createNetwork
+    DependsOn:
+        - igw1AttachInternet
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      RouteTableId: !Ref rtPub2
+      GatewayId: !Ref igw1
+
+  rDefToNatGwAz1:
+    Type: AWS::EC2::Route
+    Condition: createNetwork
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      RouteTableId: !Ref rtFw1
+      NatGatewayId: !Ref natAz1
+
+  rDefToNatGwAz2:
+    Type: AWS::EC2::Route
+    Condition: createNetwork
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      RouteTableId: !Ref rtFw2
+      NatGatewayId: !Ref natAz2
+
+# Firewalls
+
+  ChkpGatewayRole:
+    Type: AWS::IAM::Role
+    Condition: createFirewalls
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+  
+  CloudwatchPolicy:
+    Condition: createFirewalls
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://cgi-cfts.s3.amazonaws.com/iam/cloudwatch-policy.yaml
+      Parameters:
+        PolicyName: ChkpGatewayPolicy
+        PolicyRole: !Ref ChkpGatewayRole
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Condition: createFirewalls
+    Properties:
+      Path: /
+      Roles:
+        - !Ref ChkpGatewayRole
+
+  AMI:
+    Type: AWS::CloudFormation::Stack
+    Condition: createFirewalls
+    Properties:
+      TemplateURL: https://cgi-cfts.s3.amazonaws.com/utils/amis.yaml
+      Parameters:
+        Version: !Join [ '-', [ !FindInMap [ fwParms, values, version ], GW ] ]
+
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Condition: createFirewalls
+    Properties:
+      Subscription:
+        - Endpoint: !FindInMap [ fwParms, values, AdminEmail ]
+          Protocol: email
+
+  PermissiveSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: createFirewalls
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join ['_', [!Ref 'AWS::StackName', PermissiveSecurityGroup]]
+      GroupDescription: Permissive security group.
+      VpcId: !Ref InternetVpc
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  ELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: createFirewalls
+    Properties:
+      GroupDescription: ELB security group.
+      VpcId: !Ref InternetVpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          CidrIp:   !FindInMap [ elbParms, values, clients ]
+          FromPort: !FindInMap [ elbParms, values, port    ]
+          ToPort:   !FindInMap [ elbParms, values, port    ]
+
+  ExternalElasticLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Condition: createFirewalls
+    DependsOn:
+      - igw1AttachInternet
+    Properties:
+      CrossZone: true
+      Listeners:
+        - LoadBalancerPort: !FindInMap [ elbParms, values, port ]
+          InstancePort:     !FindInMap [ elbParms, values, port ]
+          Protocol: TCP
+      HealthCheck:
+        Target: !Join [':', [ TCP, !FindInMap [ elbParms, values, port ] ] ]
+        HealthyThreshold: 3
+        UnhealthyThreshold: 5
+        Interval: 30
+        Timeout: 5
+      Scheme: internet-facing
+      Subnets: [ !Ref subFw1, !Ref subFw2 ]
+      Policies:
+        - PolicyName: EnableProxyProtocol
+          PolicyType: ProxyProtocolPolicyType
+          Attributes:
+            - Name: ProxyProtocol
+              Value: true
+          InstancePorts:
+            - !FindInMap [ elbParms, values, port ]
+      SecurityGroups:
+        - !Ref ELBSecurityGroup
+
+  GatewayLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Condition: createFirewalls
+    Properties:
+      LaunchTemplateData:
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: false
+            Groups:
+              - !Ref PermissiveSecurityGroup
+        Monitoring:
+          Enabled: true
+        KeyName: !Ref KeyName
+        ImageId: !GetAtt AMI.Outputs.ImageId
+        InstanceType: !Ref GatewayInstanceType
+        BlockDeviceMappings:
+          - DeviceName: '/dev/xvda'
+            Ebs:
+              Encrypted: false
+              VolumeType: !FindInMap [ fwParms, values, volumeType ]
+              VolumeSize: !FindInMap [ fwParms, values, volumeSize ]
+        IamInstanceProfile:
+          Name: !Ref InstanceProfile
+        UserData:
+          'Fn::Base64': !Join
+            - |+
+
+            - - '#cloud-config'
+              - 'runcmd:'
+              - '  - |'
+              - '    set -e'
+              - !Sub '    admin_shell=/bin/bash ; allow_info=true ; cw=true ; eic=true'
+              - !Join ['', ['    sic="$(echo ', 'Fn::Base64': !FindInMap [ fwParms, values, sicKey   ], ')"']]
+              - !Join ['', ['    pwd_hash="$(echo ', 'Fn::Base64': !FindInMap [ fwParms, values, pwHash   ], ')"']]
+              - !Join ['', ['    maintenance_pwd_hash="$(echo ', 'Fn::Base64': !FindInMap [ fwParms, values, mgmtHash ], ')"']]
+              - !Sub ['    version=${Version}', {Version: !Select [0, !Split ['-', !FindInMap [ fwParms, values, version  ]]]}]
+              - '    python3 /etc/cloud_config.py enableCloudWatch=\"${cw}\" sicKey=\"${sic}\" installationType=\"autoscale\" osVersion=\"${version}\" allowUploadDownload=\"${allow_info}\" templateVersion=\"20250122\" templateName=\"autoscale\" shell=\"${admin_shell}\" enableInstanceConnect=\"${eic}\" passwordHash=\"${pwd_hash}\" MaintenanceModePassword=\"${maintenance_pwd_hash}\" bootstrapScript64=\"\"'
+              - '    clish -c "set security-gateway cloud-mgmt-service on auth-token aHR0cHM6Ly9jbG91ZGluZnJhLWd3LXVzLnBvcnRhbC5jaGVja3BvaW50LmNvbS9hcHAvbWFhcy9hcGkvdjEvdGVuYW50LzVjNmZhMTE3LWJhOWUtNGZmYi05ZjA5LWY1MGE0ZDBlYjg0Yi9hY2Nlc3Mta2V5cy8/b3RwPTFiYzNlZTRmLTA0YWMtNDMzZi04NDlkLTRmYWE1MTk5MDU5YQ=="'
+      VersionDescription: "Initial template version"
+
+  GatewayGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Condition: createFirewalls
+    DependsOn: 
+      - GatewayLaunchTemplate
+      - ExternalElasticLoadBalancer
+    Properties:
+      VPCZoneIdentifier: [ !Ref subFw1, !Ref subFw2 ]
+      LaunchTemplate:
+        LaunchTemplateId: !Ref GatewayLaunchTemplate
+        Version: !GetAtt GatewayLaunchTemplate.LatestVersionNumber
+      AutoScalingGroupName: !Join [ "-", [ "asg", !Ref namePrefix, "fw"] ]
+      MinSize: !FindInMap [ fwParms, values, asgMin ]
+      MaxSize: !FindInMap [ fwParms, values, asgMax ]
+      LoadBalancerNames: !If [ createFirewalls, [ !Ref ExternalElasticLoadBalancer ], !Ref 'AWS::NoValue' ]
+      TargetGroupARNs: !Ref 'AWS::NoValue'
+      HealthCheckGracePeriod: 3600
+      HealthCheckType: ELB
+      NotificationConfiguration: !If
+        - createFirewalls
+        - TopicARN: !Ref NotificationTopic
+          NotificationTypes:
+            - autoscaling:EC2_INSTANCE_LAUNCH
+            - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+            - autoscaling:EC2_INSTANCE_TERMINATE
+            - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+        - !Ref 'AWS::NoValue'
+      Tags:
+        - Key: Name
+          Value: "fw-tmo-c2-cloud-gw"
+          PropagateAtLaunch: true
+        - Key: x-chkp-tags
+          Value: !Join
+            - ':'
+            - - !Join [ '=', [ management, "mgmt-server"   ] ]
+              - !Join [ '=', [ template, ASG-configuration ] ]
+              - !Join [ '=', [ ip-address, private         ] ]
+          PropagateAtLaunch: true
+
+  GatewayScaleUpPolicy:
+    Condition: createFirewalls
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref GatewayGroup
+      Cooldown: 300
+      ScalingAdjustment: 1
+
+  GatewayScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Condition: createFirewalls    
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref GatewayGroup
+      Cooldown: 300
+      ScalingAdjustment: -1
+
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Condition: createFirewalls
+    Properties:
+      AlarmDescription: Scale-up if CPU > 80% for 10 minutes.
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      AlarmActions:
+        - !Ref GatewayScaleUpPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref GatewayGroup
+      ComparisonOperator: GreaterThanThreshold
+
+  CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Condition: createFirewalls
+    Properties:
+      AlarmDescription: Scale-down if CPU < 60% for 10 minutes.
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 60
+      AlarmActions:
+        - !Ref GatewayScaleDownPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref GatewayGroup
+      ComparisonOperator: LessThanThreshold
+
+Outputs:
+
+  URL:
+    Description: The URL of the Proxy.
+    Condition: createFirewalls
+    Value: !Join ['', ['http://', !GetAtt ExternalElasticLoadBalancer.DNSName]]
+
+  SecurityGroup:
+    Description: The Security Group of the Auto Scaling group.
+    Condition: createFirewalls
+    Value: !GetAtt PermissiveSecurityGroup.GroupId
+  

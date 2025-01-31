@@ -1,0 +1,42 @@
+#cloud-config
+runcmd:
+  - |
+    set -e
+    cw=true ; 
+    admin_shell=/etc/cli.sh ; hostname= ; allow_info=true ; ntp1=169.254.169.123 ; ntp2=0.pool.ntp.org ; eic=true ; eip=false ; admin_subnet=0.0.0.0/0
+    bootstrap="$(echo )"
+    pwd_hash="$(echo JDYkY1FKbmxYRlh0WXNIdUtSMSRZMG52REZkc0RFZEFzTzJOUmVhN3lpM3FxbDUxbDdxZGprSHhFVDdVcXdxd1Vsb0QyaTc1Mk43L2pBM28xbzJYSVV5QUl0VTZwRjhocS5hRVA5VTV4MQ==)"
+    maintenance_pwd_hash="$(echo Z3J1Yi5wYmtkZjIuc2hhNTEyLjEwMDAwLkI5MjUxN0RFOTQ4QURCMDUzNTY1MThCMTQwMEY5RDIyNkM3Qzk1QUE2QUNBRDg3QTUxRTQ2RDQ0OERENjg3QTFERTdBQTc1RjQ4QUM1NDI3Rjk0QzkzNzY2MDVCQ0FENDEwQkRDNUVCODBCNTkzRjExMTg4MEU1OUI3MUNDRjk3LkE1QjExRTdFOTVDREE3Nzg4QzE3QzU5QkI5MjRDNDI0M0I3QUZDOUQ5NThEN0M4NjVFQTZDOTg0RjdCM0QxQTIyMTVCMDAxNTZFOENBRTU5NjQ5MzMyNjBFMzE3RDY4Mjc2RUM1REY2OUU5QkE4MTk4QTY4NkU4RkU1OTIyQkQ3)"
+    version=R82
+    python3 /etc/cloud_config.py enableCloudWatch=\"${cw}\" 
+                                 waitHandle=\"${wait_handle}\" 
+                                 installationType=\"standalone\" 
+                                 osVersion=\"${version}\" 
+                                 allowUploadDownload=\"${allow_info}\" 
+                                 templateVersion=\"20250122\" 
+                                 templateName=\"standalone\" 
+                                 shell=\"${admin_shell}\" 
+                                 enableInstanceConnect=\"${eic}\" 
+                                 hostName=\"${hostname}\" n
+                                 tpPrimary=\"${ntp1}\" 
+                                 ntpSecondary=\"${ntp2}\" 
+                                 passwordHash=\"${pwd_hash}\" 
+                                 MaintenanceModePassword=\"${maintenance_pwd_hash}\" 
+                                 adminSubnet=\"${admin_subnet}\" 
+                                 allocatePublicAddress=\"${eip}\" 
+                                 bootstrapScript64=\"${bootstrap}\"
+                        
+
+
+              - '    python3 /etc/cloud_config.py   enableCloudWatch=\"${cw}\" 
+                                                    sicKey=\"${sic}\" 
+                                                    installationType=\"autoscale\" 
+                                                    osVersion=\"${version}\" 
+                                                    allowUploadDownload=\"${allow_info}\" 
+                                                    templateVersion=\"20250122\" 
+                                                    templateName=\"autoscale\" 
+                                                    shell=\"${admin_shell}\" 
+                                                    enableInstanceConnect=\"${eic}\" 
+                                                    passwordHash=\"${pwd_hash}\" 
+                                                    MaintenanceModePassword=\"${maintenance_pwd_hash}\" 
+                                                    bootstrapScript64=\"${bootstrap}\"'
